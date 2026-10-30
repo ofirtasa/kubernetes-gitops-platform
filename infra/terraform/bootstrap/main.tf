@@ -1,5 +1,5 @@
-# State bucket for the platform stack. This stack keeps its own state locally:
-# the bucket cannot store the state of the run that creates it.
+# State bucket for both stacks. The first apply runs with local state (the bucket does not
+# exist yet); the state is then migrated into the bucket. See ../README.md.
 
 resource "aws_s3_bucket" "tfstate" {
   bucket = var.state_bucket_name

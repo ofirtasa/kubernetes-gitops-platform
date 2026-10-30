@@ -7,6 +7,9 @@ terraform {
       version = "~> 6.71"
     }
   }
+
+  # Migrated into the bucket after the first apply; values in backend.hcl.
+  backend "s3" {}
 }
 
 provider "aws" {
