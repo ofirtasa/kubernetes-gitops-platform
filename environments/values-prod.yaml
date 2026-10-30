@@ -1,0 +1,14 @@
+# prod: promoted from staging by a PR that copies the staging image.tag.
+image:
+  tag: baa6c8cdfd67916d6e970b839e1bb6905fc44427
+
+config:
+  appEnv: prod
+
+# One replica per availability zone.
+autoscaling:
+  minReplicas: 3
+  maxReplicas: 6
+
+ingress:
+  listenPort: 80

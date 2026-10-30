@@ -1,0 +1,14 @@
+# dev: CI updates image.tag on every merge to main.
+image:
+  tag: baa6c8cdfd67916d6e970b839e1bb6905fc44427
+
+config:
+  appEnv: dev
+  logLevel: DEBUG
+
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+
+ingress:
+  listenPort: 8080

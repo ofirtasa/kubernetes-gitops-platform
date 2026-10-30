@@ -21,8 +21,11 @@ be small, observable and safe to run under a restricted securityContext.
   - `/metrics` serves Prometheus metrics, labelled by route template to keep cardinality low.
 - **Least privilege:** the only Kubernetes call is `list` on `nodes`, with a 5 s timeout.
   API errors return `502` and increment `k8s_api_errors_total`.
-- **Optional API key:** when `API_KEY` is set (from a Secret), `/nodes` requires the
-  `X-API-Key` header, compared in constant time. The probes stay open.
+- **Optional API key:** when the Secret file at `API_KEY_FILE` exists, `/nodes` requires the
+  `X-API-Key` header, compared in constant time.
+  - The key is mounted as a file, not an env var, and read on each request. A rotated Secret
+    applies without a restart.
+  - The probes stay open.
 - **Logs:** one JSON object per line on stdout.
 - **Image:**
   - A multi-stage build: dependencies are installed in `python:3.13-slim-trixie`.

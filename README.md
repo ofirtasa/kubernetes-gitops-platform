@@ -11,13 +11,13 @@ external secrets, policy-as-code and a documented production design.
 ```
 ├── app/                    # nodes-api source (FastAPI), tests, Dockerfile
 ├── charts/nodes-api/       # Helm chart for the service
-├── environments/           # per-environment Helm values: dev, staging, prod
+├── environments/           # Helm values: common (cluster-wide) + dev, staging, prod
 ├── argocd/
 │   ├── bootstrap/          # root Application (app of apps)
 │   ├── platform/           # cluster add-ons and namespaces
 │   └── apps/               # ApplicationSet: nodes-api × 3 environments
 ├── infra/terraform/
-│   ├── bootstrap/          # Terraform state bucket (local state)
+│   ├── bootstrap/          # Terraform state bucket
 │   └── platform/           # VPC, EKS, ECR, CI role; later IAM for add-ons and Argo CD
 ├── policies/               # Kyverno cluster policies
 ├── monitoring/elastic/     # alert rules as code

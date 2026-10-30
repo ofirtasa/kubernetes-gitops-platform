@@ -1,0 +1,8 @@
+# Cluster-wide values shared by every environment (one cluster, one VPC).
+# Applied before values-<env>.yaml.
+
+networkPolicy:
+  # Public subnets, where the ALB nodes live.
+  albCidrs: ["10.0.12.0/26", "10.0.12.64/26", "10.0.12.128/26"]
+  # The kubernetes Service ClusterIP and the private subnets holding the control plane ENIs.
+  apiServerCidrs: ["172.20.0.1/32", "10.0.0.0/22", "10.0.4.0/22", "10.0.8.0/22"]

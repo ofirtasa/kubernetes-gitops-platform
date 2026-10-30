@@ -1,0 +1,13 @@
+# staging: promoted from dev by a PR that copies the dev image.tag.
+image:
+  tag: baa6c8cdfd67916d6e970b839e1bb6905fc44427
+
+config:
+  appEnv: staging
+
+autoscaling:
+  minReplicas: 2
+  maxReplicas: 3
+
+ingress:
+  listenPort: 8081

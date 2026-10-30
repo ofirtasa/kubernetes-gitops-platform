@@ -1,0 +1,6 @@
+apiVersion: v2
+name: nodes-api
+description: Lists the cluster nodes and marks the node the pod runs on.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

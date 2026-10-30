@@ -16,7 +16,9 @@ promotion easy to review.
   `argocd/`, `infra/`, `policies/`, `monitoring/`, `docs/`.
 - The Helm chart (`charts/nodes-api`) describes *how* the service is deployed and is the same
   for every environment. What differs per environment lives in
-  `environments/values-<env>.yaml`, referenced from Argo CD via `valueFiles`.
+  `environments/values-<env>.yaml`; values that describe the cluster rather than an environment
+  (subnet CIDRs for NetworkPolicy) live once in `environments/values-common.yaml`. Argo CD
+  passes both through `valueFiles`, common first.
 - Terraform is split into `bootstrap` (the S3 state bucket: first applied with local state, which is then migrated into the bucket)
   and `platform` (everything else).
 

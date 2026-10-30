@@ -1,0 +1,72 @@
+# Defaults shared by all environments. Per-environment overrides live in
+# environments/values-<env>.yaml.
+
+image:
+  repository: 404386756450.dkr.ecr.eu-north-1.amazonaws.com/nodes-api
+  # Commit SHA of the image; set per environment and promoted through Git.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# Used only when autoscaling is disabled.
+replicaCount: 2
+
+config:
+  appEnv: ""
+  logLevel: INFO
+  k8sTimeoutSeconds: "5"
+
+# Secret with the API key that protects /nodes, mounted as a file. Created by External
+# Secrets in the cluster; when it does not exist the app runs without the key.
+apiKey:
+  secretName: nodes-api
+  secretKey: api-key
+
+service:
+  port: 80
+
+containerPort: 8000
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+# Seconds the pod keeps serving after it is marked for termination, so the ALB stops
+# sending traffic to it before the process exits.
+preStopSleepSeconds: 10
+terminationGracePeriodSeconds: 30
+
+ingress:
+  enabled: true
+  className: alb
+  # All environments share one ALB (one IngressGroup); each environment gets its own
+  # listener port, because there is no domain for host-based routing.
+  groupName: k8s-gitops
+  listenPort: 80
+  # Optional. When empty the ALB has no inbound restriction.
+  inboundCidrs: []
+
+networkPolicy:
+  enabled: true
+  # The ALB sends traffic straight to pod IPs (target-type ip) from the public subnets.
+  albCidrs: []
+  # Kubernetes API (EKS control plane ENIs in the VPC).
+  apiServerCidrs: []
+  # Namespace allowed to scrape /metrics.
+  monitoringNamespace: monitoring
+
+nodeSelector: {}
+tolerations: []
