@@ -28,6 +28,15 @@ module "vpc" {
   }
 }
 
+# Free gateway endpoint: S3 traffic (including ECR image layers) stays on the AWS network
+# instead of going through the NAT gateway.
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = module.vpc.private_route_table_ids
+}
+
 ################################################################################
 # EKS cluster, add-ons and managed node group
 ################################################################################
@@ -78,6 +87,8 @@ module "eks" {
           ENABLE_PREFIX_DELEGATION = "true"
           WARM_PREFIX_TARGET       = "1"
         }
+        # Enforces Kubernetes NetworkPolicy natively in the VPC CNI (eBPF), no extra CNI needed.
+        enableNetworkPolicy = "true"
       })
     }
     eks-pod-identity-agent = {

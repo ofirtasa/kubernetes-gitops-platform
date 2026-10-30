@@ -14,7 +14,9 @@ a small budget, while following production practices wherever cost allows.
 |---|---|---|
 | Region | `eu-north-1` | Full service coverage at lower prices than most EU regions |
 | Clusters | One EKS cluster, one namespace per environment | Cost; isolation through namespaces, RBAC, NetworkPolicy and per-environment secrets |
-| Network | VPC across 3 AZs; nodes in private subnets; public subnets only for the load balancer and NAT | Nodes have no public IPs and are unreachable from the internet |
+| Network | VPC `10.0.0.0/20` across 3 AZs; private `/22` subnets for nodes and pods; public `/26` subnets only for the load balancer and NAT | Nodes have no public IPs and are unreachable from the internet. Sized from the expected pod count, see below |
+| Private AWS access | S3 gateway endpoint | Free; image layers from ECR (stored in S3) bypass the NAT gateway |
+| Pod-level segmentation | NetworkPolicy enforced natively by the VPC CNI | No extra CNI; default-deny per namespace with explicit allows |
 | Egress | One NAT gateway | Cost |
 | API endpoint | Private for nodes; public only for allow-listed CIDRs | Operators can reach the API without a VPN; nobody else can |
 | Cluster access | EKS access entries (`authentication_mode = API`); no implicit admin for the Terraform caller | Access is explicit, in code and auditable; no `aws-auth` ConfigMap |
@@ -28,6 +30,22 @@ a small budget, while following production practices wherever cost allows.
 | CI access | GitHub OIDC role limited to `main` of this repository and push to one ECR repository | No long-lived AWS keys in GitHub |
 | State | S3 backend with native lock file (`use_lockfile`), versioning, encryption, TLS-only policy | No DynamoDB table needed for locking (Terraform ≥ 1.10) |
 
+## Subnet sizing
+
+Every pod gets a VPC IP. With prefix delegation a node takes IPs in `/28` blocks (16 IPs):
+
+- About 40 pods in total (Argo CD, Kyverno, ESO, load balancer controller, CoreDNS,
+  metrics-server, and the service in three environments including HPA growth).
+- Per node: about 15 pods = 1 prefix in use + 1 warm prefix (32 IPs) + up to 3 ENI primary
+  IPs, so about 35 IPs.
+- Worst case per AZ: 2 nodes (scale-out plus a replacement node during an upgrade) = about
+  70 IPs.
+- A `/22` gives 1,019 usable IPs per AZ: over 10x headroom, which also leaves contiguous
+  `/28` blocks free (prefix delegation fails on fragmented subnets). A `/24` (251) would
+  work today but leaves little room for node autoscaling.
+- Public subnets hold only the load balancer (needs at least 8 free IPs per subnet) and the
+  NAT gateway: `/26` (59 usable) is enough.
+
 All tunable values live in `terraform.tfvars`. Security guardrails (immutable tags,
 encryption, IMDSv2, blocked public access) stay in code, so they cannot be weakened by a
 variable change.
@@ -39,6 +57,9 @@ variable change.
   affect production. Here one cluster keeps the cost within budget.
 - **NAT per AZ.** With one NAT gateway, losing its AZ stops all outbound traffic. Production
   would run one per AZ.
+- **Egress filtering.** The NAT gateway lets pods reach any internet address. Production
+  would filter egress by domain (AWS Network Firewall or an egress proxy) and use VPC
+  interface endpoints plus ECR pull-through cache so most traffic never leaves AWS.
 - **Private-only API endpoint.** Production would disable the public endpoint and reach the
   API over VPN or a bastion.
 - **Node autoscaling.** The node group has a fixed size. Production would add Karpenter so
