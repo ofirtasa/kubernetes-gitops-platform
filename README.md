@@ -17,8 +17,8 @@ external secrets, policy-as-code and a documented production design.
 │   ├── platform/           # cluster add-ons and namespaces
 │   └── apps/               # ApplicationSet: nodes-api × 3 environments
 ├── infra/terraform/
-│   ├── bootstrap/          # Terraform state bucket, GitHub OIDC role
-│   └── platform/           # VPC, EKS, ECR, IAM, Secrets Manager, Argo CD install
+│   ├── bootstrap/          # Terraform state bucket (local state)
+│   └── platform/           # VPC, EKS, ECR, CI role; later IAM for add-ons and Argo CD
 ├── policies/               # Kyverno cluster policies
 ├── monitoring/elastic/     # alert rules as code
 ├── docs/                   # architecture, production design, operations
@@ -35,3 +35,4 @@ Each significant decision is recorded as an ADR in [docs/decisions](docs/decisio
 |---|---|
 | [0001](docs/decisions/0001-single-repository-layout.md) | Single repository, chart separated from environment values |
 | [0002](docs/decisions/0002-argo-cd-for-gitops.md) | Argo CD as the GitOps controller |
+| [0003](docs/decisions/0003-eks-platform-baseline.md) | EKS platform baseline: network, access, nodes, registry |

@@ -16,3 +16,6 @@ __pycache__/
 # Local
 .env
 .DS_Store
+
+# Per-user Terraform variables (e.g. your public IP)
+local.auto.tfvars

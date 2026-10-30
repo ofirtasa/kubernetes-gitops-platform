@@ -17,8 +17,8 @@ promotion easy to review.
 - The Helm chart (`charts/nodes-api`) describes *how* the service is deployed and is the same
   for every environment. What differs per environment lives in
   `environments/values-<env>.yaml`, referenced from Argo CD via `valueFiles`.
-- Terraform is split into `bootstrap` (the S3 state bucket, which cannot store its own state,
-  and the GitHub OIDC role) and `platform` (everything else).
+- Terraform is split into `bootstrap` (the S3 state bucket, which cannot store its own state)
+  and `platform` (everything else).
 
 ## Consequences
 
