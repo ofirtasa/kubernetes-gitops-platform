@@ -66,8 +66,13 @@ variable change.
 - **Instance types.** Production would use current general-purpose instances, preferably
   Graviton (`m7g`/`m8g`, about 20% cheaper for the same performance, with multi-arch images),
   chosen by Karpenter per workload, and Spot for non-production environments.
-- **Node autoscaling.** The node group has a fixed size. Production would add Karpenter so
-  nodes follow pod demand, including Spot capacity for non-production environments.
+- **Node autoscaling.** Cluster Autoscaler resizes the managed node group between
+  `node_min_size` and `node_max_size` (3–4).
+  - It runs v1.36.1, one minor version behind the cluster, because 1.37 is not released yet.
+    It should be upgraded when that release comes out.
+  - The account's 8 vCPU On-Demand quota caps the cluster at 4 nodes anyway.
+  - Production would use Karpenter instead: it picks the instance type per workload, without
+    node groups, and adds Spot capacity for non-production environments.
 - **Destroyable resources.** The state bucket and ECR repository allow `terraform destroy`
   to delete their contents, because this environment is torn down after review. Production
   would protect them.

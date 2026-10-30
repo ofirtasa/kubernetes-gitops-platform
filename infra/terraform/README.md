@@ -47,6 +47,17 @@ A separate kubeconfig file keeps this cluster apart from any other clusters in
 
 Afterwards, both stacks only need `terraform init -backend-config=backend.hcl`.
 
+## Argo CD
+
+The platform stack installs Argo CD and the root Application. From then on, Argo CD deploys
+everything under `argocd/` from Git.
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+kubectl -n argocd port-forward svc/argo-cd-argocd-server 8080:443
+# Open https://localhost:8080 and sign in as admin
+```
+
 ## Destroy
 
 1. Delete Ingress resources first: load balancers created by the AWS Load Balancer

@@ -1,0 +1,47 @@
+# Adds nodes when pods are Pending for lack of capacity and removes idle ones, within the
+# node group's min/max. AWS access comes from a Pod Identity role created by Terraform.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-autoscaler
+  namespace: argocd
+spec:
+  project: platform
+  source:
+    repoURL: https://kubernetes.github.io/autoscaler
+    chart: cluster-autoscaler
+    targetRevision: 9.59.0
+    helm:
+      releaseName: cluster-autoscaler
+      valuesObject:
+        cloudProvider: aws
+        awsRegion: eu-north-1
+        # Finds the node group's Auto Scaling group by the tags EKS puts on it.
+        autoDiscovery:
+          clusterName: k8s-gitops
+        # Matches the cluster minor version when released; 1.37 is not out yet.
+        image:
+          tag: v1.36.1
+        rbac:
+          serviceAccount:
+            create: true
+            # Must match the Pod Identity association in Terraform.
+            name: cluster-autoscaler
+        extraArgs:
+          balance-similar-node-groups: true
+          expander: least-waste
+          scale-down-unneeded-time: 10m
+          skip-nodes-with-local-storage: false
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

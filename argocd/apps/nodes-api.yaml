@@ -1,0 +1,45 @@
+# One Application per environment, all from the same chart; only the values file differs.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nodes-api
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - env: dev
+          - env: staging
+          - env: prod
+  template:
+    metadata:
+      name: "nodes-api-{{ .env }}"
+      labels:
+        environment: "{{ .env }}"
+    spec:
+      project: nodes-api
+      source:
+        repoURL: https://github.com/ofirtasa/kubernetes-gitops-platform.git
+        targetRevision: main
+        path: charts/nodes-api
+        helm:
+          releaseName: nodes-api
+          valueFiles:
+            - ../../environments/values-common.yaml
+            - "../../environments/values-{{ .env }}.yaml"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .env }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        # The namespace is created by the platform Application; retry until it exists.
+        retry:
+          limit: 10
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 3m

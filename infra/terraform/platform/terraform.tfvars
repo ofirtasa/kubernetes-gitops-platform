@@ -32,3 +32,8 @@ ecr_keep_image_count     = 30
 ecr_untagged_expiry_days = 1
 github_repository        = "ofirtasa/kubernetes-gitops-platform"
 github_oidc_sub_prefix   = "repo:ofirtasa@169286074/kubernetes-gitops-platform@1439451897" # owner@id/repo@id
+
+# GitOps bootstrap
+argocd_chart_version      = "10.11.6"
+argocd_apps_chart_version = "2.0.7"
+gitops_revision           = "main"

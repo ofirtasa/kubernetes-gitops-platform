@@ -294,3 +294,104 @@ resource "aws_resourcegroups_group" "project" {
     })
   }
 }
+
+################################################################################
+# Pod Identity roles for cluster add-ons (the add-ons themselves are deployed by Argo CD)
+################################################################################
+
+module "cluster_autoscaler_pod_identity" {
+  source  = "terraform-aws-modules/eks-pod-identity/aws"
+  version = "~> 2.10"
+
+  name = "${var.name}-cluster-autoscaler"
+
+  # Least privilege: may only resize the node groups of this cluster.
+  attach_cluster_autoscaler_policy = true
+  cluster_autoscaler_cluster_names = [module.eks.cluster_name]
+
+  associations = {
+    this = {
+      cluster_name    = module.eks.cluster_name
+      namespace       = "kube-system"
+      service_account = "cluster-autoscaler"
+    }
+  }
+}
+
+################################################################################
+# GitOps bootstrap: Argo CD and the root Application (the only in-cluster resources
+# Terraform installs; Argo CD deploys everything else from Git)
+################################################################################
+
+resource "helm_release" "argocd" {
+  name             = "argo-cd"
+  namespace        = "argocd"
+  create_namespace = true
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = var.argocd_chart_version
+
+  values = [yamlencode({
+    # Dex is Argo CD's bundled SSO server and is installed by default. There is no SSO here
+    # (the local admin user signs in through a port-forward), so it is turned off.
+    dex = { enabled = false }
+    configs = {
+      cm = {
+        # Gives Application resources a health status, so sync waves in the root
+        # app-of-apps wait for each child Application to become healthy.
+        "resource.customizations.health.argoproj.io_Application" = <<-LUA
+          hs = {}
+          hs.status = "Progressing"
+          hs.message = ""
+          if obj.status ~= nil and obj.status.health ~= nil then
+            hs.status = obj.status.health.status
+            if obj.status.health.message ~= nil then
+              hs.message = obj.status.health.message
+            end
+          end
+          return hs
+        LUA
+      }
+    }
+    controller     = { resources = { requests = { cpu = "100m", memory = "384Mi" } } }
+    repoServer     = { resources = { requests = { cpu = "50m", memory = "128Mi" } } }
+    server         = { resources = { requests = { cpu = "50m", memory = "128Mi" } } }
+    applicationSet = { resources = { requests = { cpu = "25m", memory = "64Mi" } } }
+    notifications  = { resources = { requests = { cpu = "10m", memory = "32Mi" } } }
+    redis          = { resources = { requests = { cpu = "25m", memory = "64Mi" } } }
+  })]
+
+  # The node group must exist before pods can be scheduled.
+  depends_on = [module.eks]
+}
+
+resource "helm_release" "argocd_root_app" {
+  name       = "argocd-root"
+  namespace  = "argocd"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argocd-apps"
+  version    = var.argocd_apps_chart_version
+
+  values = [yamlencode({
+    applications = {
+      root = {
+        namespace = "argocd"
+        project   = "default"
+        source = {
+          repoURL        = "https://github.com/${var.github_repository}.git"
+          targetRevision = var.gitops_revision
+          path           = "argocd/bootstrap"
+        }
+        destination = {
+          server    = "https://kubernetes.default.svc"
+          namespace = "argocd"
+        }
+        syncPolicy = {
+          automated = { prune = true, selfHeal = true }
+        }
+      }
+    }
+  })]
+
+  depends_on = [helm_release.argocd]
+}

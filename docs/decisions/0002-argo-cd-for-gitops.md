@@ -22,11 +22,26 @@ Use Argo CD.
 
 ## Consequences
 
-- Argo CD is installed once by Terraform together with the root Application. This is the
-  only step that touches the cluster from outside Git (the bootstrap exception); after it,
-  Argo CD manages all add-ons and workloads, including itself.
-- Automated sync with `selfHeal` and `prune` is enabled, so manual changes in the cluster
-  are reverted and resources removed from Git are deleted.
+- **Bootstrap exception:** Terraform installs Argo CD and the root Application. This is the
+  only step that touches the cluster from outside Git.
+- **Ownership:** Terraform remains the owner of Argo CD itself (chart version and values in
+  `terraform.tfvars`). Argo CD manages every add-on and workload.
+  - Argo CD does not manage itself. Otherwise Terraform and Argo CD would both own the same
+    resources and keep overwriting each other.
+- **App of apps:** the root Application (`argocd/bootstrap`) creates the AppProjects, then
+  the `platform` Application (namespaces, add-ons), then the `apps` Application (the
+  nodes-api ApplicationSet). The sync waves are -2, -1 and 0.
+  - A health check for `Application` resources (in `argocd-cm`) makes each wave wait until
+    the previous one is healthy.
+- **AppProjects:** `platform` may install cluster-wide objects. `nodes-api` may deploy only
+  to the dev, staging and prod namespaces. Its only cluster-wide objects are the node-read
+  ClusterRole and its binding.
+- **Automated sync:** `selfHeal` and `prune` are enabled. Manual changes in the cluster are
+  reverted, and resources removed from Git are deleted.
+- **Namespaces are never pruned** (`Prune=false`). Removing a file must not delete an
+  environment and everything in it.
+- **Access:** the UI is reached through `kubectl port-forward` with the local admin user.
+  There is no domain or SSO; the bundled Dex server is disabled.
 
 ## Trade-offs
 

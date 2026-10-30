@@ -18,3 +18,8 @@ output "github_actions_role_arn" {
 output "configure_kubectl" {
   value = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
 }
+
+output "argocd_ui" {
+  description = "Open the Argo CD UI on https://localhost:8080 (user admin)."
+  value       = "kubectl -n argocd port-forward svc/argo-cd-argocd-server 8080:443"
+}
