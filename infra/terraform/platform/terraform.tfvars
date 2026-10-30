@@ -31,3 +31,4 @@ ecr_repository_name      = "nodes-api"
 ecr_keep_image_count     = 30
 ecr_untagged_expiry_days = 1
 github_repository        = "ofirtasa/kubernetes-gitops-platform"
+github_oidc_sub_prefix   = "repo:ofirtasa@169286074/kubernetes-gitops-platform@1439451897" # owner@id/repo@id
