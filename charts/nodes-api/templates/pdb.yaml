@@ -1,0 +1,16 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nodes-api.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nodes-api.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  # A crash-looping pod must not block node drains.
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      {{- include "nodes-api.selectorLabels" . | nindent 6 }}
+{{- end }}

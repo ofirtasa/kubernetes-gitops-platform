@@ -1,0 +1,57 @@
+name: chart
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - charts/**
+      - environments/**
+      - .kube-linter.yaml
+      - .github/workflows/chart.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chart-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  KUBERNETES_VERSION: 1.37.0
+  KUBECONFORM_VERSION: v0.8.0
+
+jobs:
+  chart:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v4.3.1
+
+      - name: Lint and render every environment
+        run: |
+          mkdir -p rendered
+          for env in dev staging prod; do
+            values="-f environments/values-common.yaml -f environments/values-$env.yaml"
+            helm lint charts/nodes-api $values --strict
+            helm template nodes-api charts/nodes-api -n "$env" $values > "rendered/$env.yaml"
+          done
+
+      - name: Validate against the Kubernetes schema
+        run: |
+          curl -sSLO "https://github.com/yannh/kubeconform/releases/download/$KUBECONFORM_VERSION/kubeconform-linux-amd64.tar.gz"
+          curl -sSLO "https://github.com/yannh/kubeconform/releases/download/$KUBECONFORM_VERSION/CHECKSUMS"
+          grep ' kubeconform-linux-amd64.tar.gz$' CHECKSUMS | sha256sum -c -
+          tar xzf kubeconform-linux-amd64.tar.gz kubeconform
+          ./kubeconform -strict -summary -kubernetes-version "$KUBERNETES_VERSION" rendered/*.yaml
+
+      - name: kube-linter
+        uses: stackrox/kube-linter-action@87802a2f4e01abebb3ee3c67a3002fea71f6eae5 # v1.0.7
+        with:
+          directory: rendered
+          config: .kube-linter.yaml
+          version: v0.8.3

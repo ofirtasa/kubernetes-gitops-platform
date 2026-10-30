@@ -60,7 +60,8 @@ def create_app(settings: Settings | None = None, core_api: client.CoreV1Api | No
 
     def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
         # Node names and IPs are infrastructure details: /nodes is not anonymous in the cluster.
-        if settings.api_key and not hmac.compare_digest(x_api_key or "", settings.api_key):
+        api_key = settings.read_api_key()
+        if api_key and not hmac.compare_digest(x_api_key or "", api_key):
             raise HTTPException(status_code=401, detail="invalid or missing X-API-Key header")
 
     @app.get("/health")

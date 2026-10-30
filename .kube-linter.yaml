@@ -1,0 +1,20 @@
+# kube-linter checks the rendered chart for unsafe or unreliable Kubernetes settings.
+checks:
+  addAllBuiltIn: true
+  exclude:
+    # Image tags are commit SHAs and ECR tags are immutable; digests would add nothing.
+    - latest-tag
+    # Ownership metadata: not used in this project.
+    - required-annotation-email
+    - required-label-owner
+    # dev and staging run fewer replicas on purpose; prod runs three.
+    - minimum-three-replicas
+    - hpa-minimum-three-replicas
+    # Pods are spread with topologySpreadConstraints; there is no node pool to pin to.
+    - no-node-affinity
+    # The app resolves no external names, so ndots tuning has no effect.
+    - dnsconfig-options
+    # False positive: a Deployment's pods always use restartPolicy Always.
+    - restart-policy
+    # Style only.
+    - sorted-keys

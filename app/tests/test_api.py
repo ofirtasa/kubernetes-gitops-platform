@@ -33,7 +33,7 @@ def make_settings(**overrides):
         "node_name": "node-b",
         "pod_name": "nodes-api-abc",
         "pod_namespace": "dev",
-        "api_key": None,
+        "api_key_file": None,
         "k8s_timeout_seconds": 5,
     }
     return Settings(**(values | overrides))
@@ -83,13 +83,25 @@ def test_nodes_kubernetes_error_returns_502(core_api):
     assert response.status_code == 502
 
 
-def test_nodes_requires_api_key_when_configured(core_api):
-    with client_for(core_api, api_key="s3cret") as client:
+def test_nodes_requires_api_key_when_configured(core_api, tmp_path):
+    key_file = tmp_path / "api-key"
+    key_file.write_text("s3cret\n")
+    with client_for(core_api, api_key_file=str(key_file)) as client:
         assert client.get("/nodes").status_code == 401
         assert client.get("/nodes", headers={"X-API-Key": "wrong"}).status_code == 401
         assert client.get("/nodes", headers={"X-API-Key": "s3cret"}).status_code == 200
         # Probes must never need the key.
         assert client.get("/health").status_code == 200
+
+        # Rotation: the new key applies without restarting the app.
+        key_file.write_text("rotated")
+        assert client.get("/nodes", headers={"X-API-Key": "s3cret"}).status_code == 401
+        assert client.get("/nodes", headers={"X-API-Key": "rotated"}).status_code == 200
+
+
+def test_missing_api_key_file_leaves_nodes_open(core_api, tmp_path):
+    with client_for(core_api, api_key_file=str(tmp_path / "absent")) as client:
+        assert client.get("/nodes").status_code == 200
 
 
 def test_metrics_use_route_template(core_api):
