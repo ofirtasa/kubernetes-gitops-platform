@@ -36,3 +36,4 @@ Each significant decision is recorded as an ADR in [docs/decisions](docs/decisio
 | [0001](docs/decisions/0001-single-repository-layout.md) | Single repository, chart separated from environment values |
 | [0002](docs/decisions/0002-argo-cd-for-gitops.md) | Argo CD as the GitOps controller |
 | [0003](docs/decisions/0003-eks-platform-baseline.md) | EKS platform baseline: network, access, nodes, registry |
+| [0004](docs/decisions/0004-application-and-container-image.md) | Application stack and container image |
