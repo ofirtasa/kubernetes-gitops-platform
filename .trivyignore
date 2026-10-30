@@ -1,0 +1,14 @@
+# Accepted findings. Each one is a decision recorded in docs/decisions/0003-eks-platform-baseline.md.
+
+# State bucket uses SSE-S3 (AES256): the state holds no secrets, and a CMK adds cost without
+# changing who can read the bucket (that is governed by IAM and the bucket policy).
+AWS-0132
+
+# Public API endpoint, restricted to the admin's /32 (endpoint_public_access_cidrs); private
+# access is enabled for nodes. Production: private-only endpoint reached through VPN/bastion.
+AWS-0040
+AWS-0041
+
+# Nodes need outbound HTTPS to ECR, AWS APIs and public registries through the NAT gateway.
+# Production: egress filtering with AWS Network Firewall or a proxy, plus VPC endpoints.
+AWS-0104
