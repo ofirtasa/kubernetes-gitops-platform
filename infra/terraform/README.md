@@ -37,8 +37,9 @@ terraform init -backend-config=backend.hcl
 terraform plan -out=platform.tfplan
 terraform apply platform.tfplan
 
-aws eks update-kubeconfig --region eu-north-1 --name k8s-gitops \n  --kubeconfig ~/.kube/k8s-gitops --alias k8s-gitops
-export KUBECONFIG=~/.kube/k8s-gitops    # PowerShell: $env:KUBECONFIG="$HOME.kubek8s-gitops"
+aws eks update-kubeconfig --region eu-north-1 --name k8s-gitops \
+  --kubeconfig ~/.kube/k8s-gitops --alias k8s-gitops
+export KUBECONFIG=~/.kube/k8s-gitops    # PowerShell: $env:KUBECONFIG="$HOME\.kube\k8s-gitops"
 ```
 
 A separate kubeconfig file keeps this cluster apart from any other clusters in
