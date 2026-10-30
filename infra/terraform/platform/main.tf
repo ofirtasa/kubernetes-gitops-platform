@@ -53,7 +53,7 @@ module "eks" {
 
   # Nodes reach the API privately; humans reach it publicly, only from allowed CIDRs.
   endpoint_private_access      = true
-  endpoint_public_access       = true
+  endpoint_public_access       = var.endpoint_public_access
   endpoint_public_access_cidrs = var.endpoint_public_access_cidrs
 
   # Workload AWS access uses EKS Pod Identity, so the IRSA OIDC provider is not needed.
@@ -82,40 +82,35 @@ module "eks" {
   # Only the webhook ports this platform uses, instead of the module's recommended set
   # (which also opens 4443, 6443 and 8443 for tools we do not run).
   node_security_group_enable_recommended_rules = false
-  node_security_group_additional_rules = {
-    ingress_nodes_ephemeral = {
-      description = "Node to node: pod-to-pod traffic across nodes"
-      protocol    = "tcp"
-      from_port   = 1025
-      to_port     = 65535
-      type        = "ingress"
-      self        = true
-    }
-    ingress_cluster_metrics_server = {
-      description                   = "Cluster API to metrics-server (EKS add-on)"
-      protocol                      = "tcp"
-      from_port                     = 10251
-      to_port                       = 10251
-      type                          = "ingress"
-      source_cluster_security_group = true
-    }
-    ingress_cluster_admission_webhooks = {
-      description                   = "Cluster API to admission webhooks: Kyverno, AWS Load Balancer Controller"
-      protocol                      = "tcp"
-      from_port                     = 9443
-      to_port                       = 9443
-      type                          = "ingress"
-      source_cluster_security_group = true
-    }
-    egress_all = {
-      description = "Node egress: image pulls, AWS APIs, GitHub (through NAT)"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "egress"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  }
+  node_security_group_additional_rules = merge(
+    {
+      for name, port in var.node_webhook_ports : "ingress_cluster_${name}" => {
+        description                   = "Cluster API to ${name} webhook"
+        protocol                      = "tcp"
+        from_port                     = port
+        to_port                       = port
+        type                          = "ingress"
+        source_cluster_security_group = true
+      }
+    },
+    {
+      ingress_nodes_ephemeral = {
+        description = "Node to node: pod-to-pod traffic across nodes"
+        protocol    = "tcp"
+        from_port   = 1025
+        to_port     = 65535
+        type        = "ingress"
+        self        = true
+      }
+      egress_all = {
+        description = "Node egress: image pulls, AWS APIs, GitHub (through NAT)"
+        protocol    = "-1"
+        from_port   = 0
+        to_port     = 0
+        type        = "egress"
+        cidr_blocks = ["0.0.0.0/0"]
+      }
+  })
 
   addons = {
     vpc-cni = {

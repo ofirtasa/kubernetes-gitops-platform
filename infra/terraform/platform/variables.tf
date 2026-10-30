@@ -108,3 +108,13 @@ variable "github_repository" {
   description = "GitHub repository (owner/name) whose main branch may push images to ECR."
   type        = string
 }
+
+variable "endpoint_public_access" {
+  description = "Expose the EKS API publicly (restricted to endpoint_public_access_cidrs). False = reachable only from inside the VPC."
+  type        = bool
+}
+
+variable "node_webhook_ports" {
+  description = "Ports on which the control plane may call webhooks running on nodes, by component."
+  type        = map(number)
+}

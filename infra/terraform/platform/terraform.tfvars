@@ -11,6 +11,7 @@ single_nat_gateway   = true
 # EKS
 kubernetes_version         = "1.37"
 admin_principal_arn        = "arn:aws:iam::404386756450:user/ofir-admin"
+endpoint_public_access     = true
 cluster_log_types          = ["audit", "authenticator"]
 cluster_log_retention_days = 7
 node_ami_type              = "AL2023_x86_64_STANDARD"
@@ -18,6 +19,12 @@ node_instance_types        = ["t3.medium"]
 node_min_size              = 3
 node_max_size              = 4
 node_desired_size          = 3
+
+# Webhooks the control plane calls on nodes (security group ingress)
+node_webhook_ports = {
+  metrics-server     = 10251 # EKS metrics-server add-on, required by the HPA
+  admission-webhooks = 9443  # Kyverno and AWS Load Balancer Controller
+}
 
 # ECR and CI
 ecr_repository_name      = "nodes-api"
