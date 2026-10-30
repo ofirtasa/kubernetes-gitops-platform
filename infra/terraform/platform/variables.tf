@@ -109,6 +109,11 @@ variable "github_repository" {
   type        = string
 }
 
+variable "github_oidc_sub_prefix" {
+  description = "Immutable OIDC subject prefix of the repository (GET repos/{repo}/actions/oidc/customization/sub)."
+  type        = string
+}
+
 variable "endpoint_public_access" {
   description = "Expose the EKS API publicly (restricted to endpoint_public_access_cidrs). False = reachable only from inside the VPC."
   type        = bool
