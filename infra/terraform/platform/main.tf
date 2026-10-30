@@ -141,6 +141,9 @@ module "eks" {
       max_size     = var.node_max_size
       desired_size = var.node_desired_size
 
+      # Provider default_tags do not reach instances launched by the node group's ASG.
+      launch_template_tags = data.aws_default_tags.current.tags
+
       # IMDSv2 with hop limit 1: pods cannot reach the node instance role.
       metadata_options = {
         http_endpoint               = "enabled"
@@ -269,4 +272,25 @@ resource "aws_iam_role_policy" "github_actions_ecr_push" {
   name   = "ecr-push-nodes-api"
   role   = aws_iam_role.github_actions_ecr_push.id
   policy = data.aws_iam_policy_document.ecr_push.json
+}
+
+################################################################################
+# Project view: every resource tagged Project=<name>, like an Azure resource group
+################################################################################
+
+data "aws_default_tags" "current" {}
+
+resource "aws_resourcegroups_group" "project" {
+  name        = var.name
+  description = "All resources tagged Project ${var.name}"
+
+  resource_query {
+    query = jsonencode({
+      ResourceTypeFilters = ["AWS::AllSupported"]
+      TagFilters = [{
+        Key    = "Project"
+        Values = [var.name]
+      }]
+    })
+  }
 }
