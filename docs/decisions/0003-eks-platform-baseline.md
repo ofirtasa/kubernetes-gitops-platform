@@ -24,6 +24,7 @@ a small budget, while following production practices wherever cost allows.
 | Pod networking | VPC CNI with prefix delegation | Raises pods per node from 17 to 110 on `t3.medium` |
 | Nodes | Managed node group, 3 × `t3.medium`, Amazon Linux 2023 | One node per AZ, so PDBs and topology spread are meaningful |
 | Node hardening | IMDSv2 required, hop limit 1 | Pods cannot read the node instance role credentials |
+| Node security group | Only the ports in use: 443 and 10250 from the control plane, 10251 (metrics-server), 9443 (Kyverno and load balancer controller webhooks), DNS and pod-to-pod between nodes | Least privilege; the module's recommended set also opens 4443, 6443 and 8443 for tools not used here |
 | Secrets at rest | Kubernetes Secrets envelope-encrypted with a dedicated KMS key | Protects secret values stored in etcd |
 | Audit | Control-plane `audit` and `authenticator` logs to CloudWatch, 7-day retention | Who did what in the cluster, at low log volume |
 | Registry | ECR, immutable tags, scan on push, lifecycle policy | A tag always means the same image; old images are cleaned up |
