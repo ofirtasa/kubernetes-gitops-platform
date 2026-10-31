@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - infra/terraform/**
+      - monitoring/**
       - .github/workflows/terraform.yml
 
 permissions:
@@ -18,13 +19,21 @@ concurrency:
 
 jobs:
   validate:
+    # Explicit name keeps the required check names (validate (bootstrap), validate (platform)).
+    name: validate (${{ matrix.stack }})
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        stack: [bootstrap, platform]
+        include:
+          - stack: bootstrap
+            dir: infra/terraform/bootstrap
+          - stack: platform
+            dir: infra/terraform/platform
+          - stack: monitoring
+            dir: monitoring/elastic
     defaults:
       run:
-        working-directory: infra/terraform/${{ matrix.stack }}
+        working-directory: ${{ matrix.dir }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
