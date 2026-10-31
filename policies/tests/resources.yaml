@@ -1,0 +1,178 @@
+# One compliant Deployment, and one per policy that breaks only that policy.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compliant
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: compliant
+  template:
+    metadata:
+      labels:
+        app: compliant
+    spec:
+      containers:
+        - name: app
+          image: 404386756450.dkr.ecr.eu-north-1.amazonaws.com/nodes-api:142ce4050219cca61183939688f4c78462f19edd
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: public-registry
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: public-registry
+  template:
+    metadata:
+      labels:
+        app: public-registry
+    spec:
+      containers:
+        - name: app
+          image: docker.io/library/nginx:1.29
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: latest-tag
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: latest-tag
+  template:
+    metadata:
+      labels:
+        app: latest-tag
+    spec:
+      containers:
+        - name: app
+          image: 404386756450.dkr.ecr.eu-north-1.amazonaws.com/nodes-api:latest
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: no-tag
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: no-tag
+  template:
+    metadata:
+      labels:
+        app: no-tag
+    spec:
+      containers:
+        - name: app
+          image: 404386756450.dkr.ecr.eu-north-1.amazonaws.com/nodes-api
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: no-resources
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: no-resources
+  template:
+    metadata:
+      labels:
+        app: no-resources
+    spec:
+      containers:
+        - name: app
+          image: 404386756450.dkr.ecr.eu-north-1.amazonaws.com/nodes-api:142ce4050219cca61183939688f4c78462f19edd
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: no-probes
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: no-probes
+  template:
+    metadata:
+      labels:
+        app: no-probes
+    spec:
+      containers:
+        - name: app
+          image: 404386756450.dkr.ecr.eu-north-1.amazonaws.com/nodes-api:142ce4050219cca61183939688f4c78462f19edd
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi

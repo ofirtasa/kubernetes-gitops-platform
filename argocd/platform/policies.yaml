@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: policies
+  namespace: argocd
+  annotations:
+    # After the Kyverno CRDs exist.
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/ofirtasa/kubernetes-gitops-platform.git
+    targetRevision: main
+    path: policies
+    directory:
+      # Test fixtures for the Kyverno CLI, not cluster resources.
+      exclude: "tests/*"
+  destination:
+    server: https://kubernetes.default.svc
+    # Unused: the policies are cluster-scoped.
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

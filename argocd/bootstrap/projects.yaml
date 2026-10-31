@@ -13,11 +13,14 @@ spec:
     - https://kubernetes.github.io/autoscaler
     - https://aws.github.io/eks-charts
     - https://charts.external-secrets.io
+    - https://kyverno.github.io/kyverno
   destinations:
     - server: https://kubernetes.default.svc
       namespace: kube-system
     - server: https://kubernetes.default.svc
       namespace: external-secrets
+    - server: https://kubernetes.default.svc
+      namespace: kyverno
     - server: https://kubernetes.default.svc
       namespace: dev
     - server: https://kubernetes.default.svc

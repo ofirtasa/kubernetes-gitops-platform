@@ -1,0 +1,29 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: require-probes
+  annotations:
+    policies.kyverno.io/title: Require liveness and readiness probes
+    policies.kyverno.io/description: >-
+      Without a readiness probe a pod receives traffic before it can serve it, and a rolling
+      update cannot tell a broken version from a working one. Without a liveness probe a hung
+      process is never restarted.
+spec:
+  validationActions: [Deny]
+  matchConstraints:
+    namespaceSelector:
+      matchExpressions:
+        - key: environment
+          operator: Exists
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+  autogen:
+    podControllers:
+      controllers: [deployments, replicasets, statefulsets, daemonsets]
+  validations:
+    - expression: >-
+        object.spec.containers.all(c, has(c.readinessProbe) && has(c.livenessProbe))
+      message: Every container needs a readiness probe and a liveness probe.
