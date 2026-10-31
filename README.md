@@ -38,3 +38,4 @@ Each significant decision is recorded as an ADR in [docs/decisions](docs/decisio
 | [0003](docs/decisions/0003-eks-platform-baseline.md) | EKS platform baseline: network, access, nodes, registry |
 | [0004](docs/decisions/0004-application-and-container-image.md) | Application stack and container image |
 | [0005](docs/decisions/0005-promotion-and-ci-write-back.md) | Promotion between environments and CI write-back to Git |
+| [0006](docs/decisions/0006-ingress-shared-alb.md) | Ingress through one shared ALB |

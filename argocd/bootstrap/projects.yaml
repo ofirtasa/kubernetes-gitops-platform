@@ -11,6 +11,7 @@ spec:
   sourceRepos:
     - https://github.com/ofirtasa/kubernetes-gitops-platform.git
     - https://kubernetes.github.io/autoscaler
+    - https://aws.github.io/eks-charts
   destinations:
     - server: https://kubernetes.default.svc
       namespace: kube-system

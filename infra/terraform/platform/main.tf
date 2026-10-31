@@ -325,6 +325,25 @@ module "cluster_autoscaler_pod_identity" {
   }
 }
 
+module "aws_lb_controller_pod_identity" {
+  source  = "terraform-aws-modules/eks-pod-identity/aws"
+  version = "~> 2.10"
+
+  name = "${var.name}-aws-lb-controller"
+
+  # The upstream controller policy: manage load balancers, target groups and their
+  # security groups.
+  attach_aws_lb_controller_policy = true
+
+  associations = {
+    this = {
+      cluster_name    = module.eks.cluster_name
+      namespace       = "kube-system"
+      service_account = "aws-load-balancer-controller"
+    }
+  }
+}
+
 ################################################################################
 # GitOps bootstrap: Argo CD and the root Application (the only in-cluster resources
 # Terraform installs; Argo CD deploys everything else from Git)

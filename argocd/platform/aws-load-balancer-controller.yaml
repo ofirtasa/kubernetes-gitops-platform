@@ -1,0 +1,64 @@
+# Turns Ingress objects into an ALB. All nodes-api environments share one ALB through an
+# IngressGroup. AWS access comes from a Pod Identity role created by Terraform.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-load-balancer-controller
+  namespace: argocd
+spec:
+  project: platform
+  source:
+    repoURL: https://aws.github.io/eks-charts
+    chart: aws-load-balancer-controller
+    targetRevision: 3.6.2
+    helm:
+      releaseName: aws-load-balancer-controller
+      valuesObject:
+        clusterName: k8s-gitops
+        region: eu-north-1
+        # IMDS hop limit 1 hides the VPC ID from pods, so the VPC is found by its tag.
+        vpcTags:
+          Name: k8s-gitops
+        serviceAccount:
+          create: true
+          # Must match the Pod Identity association in Terraform.
+          name: aws-load-balancer-controller
+        replicaCount: 2
+        podDisruptionBudget:
+          maxUnavailable: 1
+        # Only Ingress is used; no webhook on every Service of type LoadBalancer.
+        enableServiceMutatorWebhook: false
+        # Load balancers, target groups and security groups show up in the project's
+        # resource group.
+        defaultTags:
+          Project: k8s-gitops
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  # The chart generates a new webhook certificate on every render. Keep the live one,
+  # otherwise the Application is always OutOfSync.
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[].clientConfig.caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[].clientConfig.caBundle
+    - kind: Secret
+      name: aws-load-balancer-tls
+      jsonPointers:
+        - /data
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - RespectIgnoreDifferences=true

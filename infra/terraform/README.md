@@ -5,7 +5,7 @@ Two stacks, applied in order. Both keep their state in the same S3 bucket.
 | Stack | Creates | State key |
 |---|---|---|
 | `bootstrap/` | S3 bucket for Terraform state | `bootstrap/terraform.tfstate` |
-| `platform/` | VPC, EKS, ECR, GitHub OIDC role, resource group | `platform/terraform.tfstate` |
+| `platform/` | VPC, EKS, ECR, GitHub OIDC role, resource group, Pod Identity roles for add-ons, Argo CD | `platform/terraform.tfstate` |
 
 Design decisions: [ADR 0003](../../docs/decisions/0003-eks-platform-baseline.md).
 
