@@ -141,6 +141,13 @@ module "eks" {
       max_size     = var.node_max_size
       desired_size = var.node_desired_size
 
+      # Replace one node at a time, terminating before launching: the default strategy
+      # launches several new nodes first, which exceeds the account's 8 vCPU quota.
+      update_config = {
+        max_unavailable = 1
+        update_strategy = "MINIMAL"
+      }
+
       # Provider default_tags do not reach instances launched by the node group's ASG.
       launch_template_tags = data.aws_default_tags.current.tags
 
