@@ -1,0 +1,3 @@
+# Copy to local.auto.tfvars (git-ignored). Pass the secrets as environment variables:
+# TF_VAR_kibana_api_key and TF_VAR_slack_webhook_url.
+kibana_url = "https://k8s-gitops.kb.eu-north-1.aws.elastic.cloud"
