@@ -6,6 +6,13 @@ external secrets, policy-as-code and a documented production design.
 
 > Status: work in progress. Deployment instructions are added as each part lands.
 
+## Access
+
+| What | How |
+|---|---|
+| nodes-api | One ALB for all environments: prod on port 80, dev on 8080, staging on 8081 ([ADR 0006](docs/decisions/0006-ingress-shared-alb.md)). `/nodes` needs the `X-API-Key` header ([ADR 0007](docs/decisions/0007-secrets-with-external-secrets.md)) |
+| Argo CD UI | Port-forward with the local `admin` user, see [Terraform README](infra/terraform/README.md#argo-cd) |
+
 ## Repository layout
 
 ```
