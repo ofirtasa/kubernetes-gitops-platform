@@ -47,7 +47,11 @@ jobs:
           curl -sSLO "https://github.com/yannh/kubeconform/releases/download/$KUBECONFORM_VERSION/CHECKSUMS"
           grep ' kubeconform-linux-amd64.tar.gz$' CHECKSUMS | sha256sum -c -
           tar xzf kubeconform-linux-amd64.tar.gz kubeconform
-          ./kubeconform -strict -summary -kubernetes-version "$KUBERNETES_VERSION" rendered/*.yaml
+          # Schemas for CRDs (ExternalSecret) come from the community CRDs catalog.
+          ./kubeconform -strict -summary -kubernetes-version "$KUBERNETES_VERSION" \
+            -schema-location default \
+            -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
+            rendered/*.yaml
 
       - name: kube-linter
         uses: stackrox/kube-linter-action@87802a2f4e01abebb3ee3c67a3002fea71f6eae5 # v1.0.7

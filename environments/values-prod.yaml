@@ -5,6 +5,9 @@ image:
 config:
   appEnv: prod
 
+apiKey:
+  remoteKey: k8s-gitops/prod/nodes-api
+
 # One replica per availability zone.
 autoscaling:
   minReplicas: 3

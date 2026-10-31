@@ -5,6 +5,9 @@ image:
 config:
   appEnv: staging
 
+apiKey:
+  remoteKey: k8s-gitops/staging/nodes-api
+
 autoscaling:
   minReplicas: 2
   maxReplicas: 3
