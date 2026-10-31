@@ -108,3 +108,46 @@ jobs:
           docker tag "$ECR_REPOSITORY:$IMAGE_TAG" "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           echo "Pushed \`$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG\`" >> "$GITHUB_STEP_SUMMARY"
+
+  # Continuous delivery to dev: commit the new tag to Git; Argo CD deploys it.
+  # staging and prod are promoted by pull request (see docs/decisions/0005).
+  promote-dev:
+    needs: image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      # Short-lived token of the CI GitHub App, the only actor allowed to push to main.
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ vars.CI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Commit the new tag to values-dev.yaml
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          yq -i '.image.tag = strenv(IMAGE_TAG)' environments/values-dev.yaml
+          if git diff --quiet; then
+            echo "dev already runs $IMAGE_TAG"
+            exit 0
+          fi
+          user_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git commit -am "Promote nodes-api ${IMAGE_TAG::12} to dev"
+          # main may have moved since checkout; rebase onto it before pushing.
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            sleep 5
+          done
+          [ "${pushed:-}" = true ] || { echo "::error::push to main failed"; exit 1; }
+          echo "dev now runs \`$IMAGE_TAG\`" >> "$GITHUB_STEP_SUMMARY"

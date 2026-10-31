@@ -1,6 +1,6 @@
 # staging: promoted from dev by a PR that copies the dev image.tag.
 image:
-  tag: baa6c8cdfd67916d6e970b839e1bb6905fc44427
+  tag: 142ce4050219cca61183939688f4c78462f19edd
 
 config:
   appEnv: staging

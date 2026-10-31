@@ -22,7 +22,7 @@ a small budget, while following production practices wherever cost allows.
 | Cluster access | EKS access entries (`authentication_mode = API`); no implicit admin for the Terraform caller | Access is explicit, in code and auditable; no `aws-auth` ConfigMap |
 | Workload AWS access | EKS Pod Identity | Simpler than IRSA: no OIDC provider per cluster, no role-trust edits per service account |
 | Pod networking | VPC CNI with prefix delegation | Raises the pods-per-node limit to 110 instead of the ENI-based limit |
-| Nodes | Managed node group, 3 × `c7i-flex.large` (2 vCPU, 4 GiB), Amazon Linux 2023 | One node per AZ, so PDBs and topology spread are meaningful. 4 GiB per node fits the platform add-ons with room for rollouts and HPA. The account is on the AWS Free plan, which only launches Free Tier eligible types: `t3.medium` is rejected and `t3.small` (2 GiB) is too small |
+| Nodes | Managed node group, 2–4 × `c7i-flex.large` (2 vCPU, 4 GiB), Amazon Linux 2023, subnets in all 3 AZs | Starts with one node per AZ, so PDBs and topology spread are meaningful. 4 GiB per node fits the platform add-ons with room for rollouts and HPA. The account is on the AWS Free plan, which only launches Free Tier eligible types: `t3.medium` is rejected and `t3.small` (2 GiB) is too small |
 | Node hardening | IMDSv2 required, hop limit 1 | Pods cannot read the node instance role credentials |
 | Node security group | Only the ports in use: 443 and 10250 from the control plane, 10251 (metrics-server), 9443 (Kyverno and load balancer controller webhooks), DNS and pod-to-pod between nodes | Least privilege; the module's recommended set also opens 4443, 6443 and 8443 for tools not used here |
 | Secrets at rest | Kubernetes Secrets envelope-encrypted with a dedicated KMS key | Protects secret values stored in etcd |
@@ -66,8 +66,14 @@ variable change.
 - **Instance types.** Production would use current general-purpose instances, preferably
   Graviton (`m7g`/`m8g`, about 20% cheaper for the same performance, with multi-arch images),
   chosen by Karpenter per workload, and Spot for non-production environments.
-- **Node autoscaling.** The node group has a fixed size. Production would add Karpenter so
-  nodes follow pod demand, including Spot capacity for non-production environments.
+- **Node autoscaling.** Cluster Autoscaler resizes the managed node group between
+  `node_min_size` and `node_max_size` (2–4). At low load it removes a node to save cost, and
+  adds it back when pods are Pending.
+  - It runs v1.36.1, one minor version behind the cluster, because 1.37 is not released yet.
+    It should be upgraded when that release comes out.
+  - The account's 8 vCPU On-Demand quota caps the cluster at 4 nodes anyway.
+  - Production would use Karpenter instead: it picks the instance type per workload, without
+    node groups, and adds Spot capacity for non-production environments.
 - **Destroyable resources.** The state bucket and ECR repository allow `terraform destroy`
   to delete their contents, because this environment is torn down after review. Production
   would protect them.

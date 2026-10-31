@@ -1,0 +1,57 @@
+# AppProjects limit what each group of Applications may deploy, and where.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  description: Cluster add-ons and namespaces.
+  sourceRepos:
+    - https://github.com/ofirtasa/kubernetes-gitops-platform.git
+    - https://kubernetes.github.io/autoscaler
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
+    - server: https://kubernetes.default.svc
+      namespace: dev
+    - server: https://kubernetes.default.svc
+      namespace: staging
+    - server: https://kubernetes.default.svc
+      namespace: prod
+  # Add-ons install cluster-wide objects (namespaces, ClusterRoles, webhooks, CRDs).
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nodes-api
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  description: The nodes-api service in dev, staging and prod.
+  sourceRepos:
+    - https://github.com/ofirtasa/kubernetes-gitops-platform.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: dev
+    - server: https://kubernetes.default.svc
+      namespace: staging
+    - server: https://kubernetes.default.svc
+      namespace: prod
+  # Only the node-read ClusterRole and its binding; no namespaces, CRDs or webhooks.
+  clusterResourceWhitelist:
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+  # Quotas and limits belong to the platform, not to the workload.
+  namespaceResourceBlacklist:
+    - group: ""
+      kind: ResourceQuota
+    - group: ""
+      kind: LimitRange

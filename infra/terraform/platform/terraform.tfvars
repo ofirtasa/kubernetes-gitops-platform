@@ -16,7 +16,7 @@ cluster_log_types          = ["audit", "authenticator"]
 cluster_log_retention_days = 7
 node_ami_type              = "AL2023_x86_64_STANDARD"
 node_instance_types        = ["c7i-flex.large"] # Free plan allows only Free Tier eligible types
-node_min_size              = 3
+node_min_size              = 2                  # Cluster Autoscaler adds the third node when pods need it
 node_max_size              = 4
 node_desired_size          = 3
 
@@ -32,3 +32,8 @@ ecr_keep_image_count     = 30
 ecr_untagged_expiry_days = 1
 github_repository        = "ofirtasa/kubernetes-gitops-platform"
 github_oidc_sub_prefix   = "repo:ofirtasa@169286074/kubernetes-gitops-platform@1439451897" # owner@id/repo@id
+
+# GitOps bootstrap
+argocd_chart_version      = "10.11.6"
+argocd_apps_chart_version = "2.0.7"
+gitops_revision           = "main"

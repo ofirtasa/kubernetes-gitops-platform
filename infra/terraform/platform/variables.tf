@@ -123,3 +123,18 @@ variable "node_webhook_ports" {
   description = "Ports on which the control plane may call webhooks running on nodes, by component."
   type        = map(number)
 }
+
+variable "argocd_chart_version" {
+  description = "Version of the argo-cd Helm chart."
+  type        = string
+}
+
+variable "argocd_apps_chart_version" {
+  description = "Version of the argocd-apps Helm chart that creates the root Application."
+  type        = string
+}
+
+variable "gitops_revision" {
+  description = "Git revision (branch) Argo CD tracks."
+  type        = string
+}
