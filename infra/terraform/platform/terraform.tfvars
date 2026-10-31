@@ -16,7 +16,7 @@ cluster_log_types          = ["audit", "authenticator"]
 cluster_log_retention_days = 7
 node_ami_type              = "AL2023_x86_64_STANDARD"
 node_instance_types        = ["c7i-flex.large"] # Free plan allows only Free Tier eligible types
-node_min_size              = 2 # Cluster Autoscaler adds the third node when pods need it
+node_min_size              = 2                  # Cluster Autoscaler adds the third node when pods need it
 node_max_size              = 4
 node_desired_size          = 3
 
