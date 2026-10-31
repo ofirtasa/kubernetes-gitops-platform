@@ -52,11 +52,30 @@ Afterwards, both stacks only need `terraform init -backend-config=backend.hcl`.
 The platform stack installs Argo CD and the root Application. From then on, Argo CD deploys
 everything under `argocd/` from Git.
 
-```bash
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
-kubectl -n argocd port-forward svc/argo-cd-argocd-server 8080:443
-# Open https://localhost:8080 and sign in as admin
-```
+The UI is not exposed to the internet. It is reached through a port-forward, with the local
+`admin` user.
+
+1. Sign in to AWS and point `kubectl` at this cluster (see [First-time setup](#first-time-setup)).
+2. Read the admin password. Argo CD generates it on first start and keeps it only in the
+   cluster:
+
+   ```bash
+   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+   ```
+
+   ```powershell
+   $b64 = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}'
+   [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($b64))
+   ```
+
+3. Open the tunnel and keep the terminal open:
+
+   ```bash
+   kubectl -n argocd port-forward svc/argo-cd-argocd-server 8080:443
+   ```
+
+4. Open https://localhost:8080 and sign in as `admin`. The browser warns about the
+   certificate, because Argo CD serves a self-signed one.
 
 ## Destroy
 
