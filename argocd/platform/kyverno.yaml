@@ -20,8 +20,8 @@ spec:
           # prod can be created. Two replicas and a PDB keep it available during node changes.
           replicas: 2
           podDisruptionBudget:
+            # The chart's default minAvailable 1: one of the two replicas always stays up.
             enabled: true
-            maxUnavailable: 1
         backgroundController:
           replicas: 1
         cleanupController:
