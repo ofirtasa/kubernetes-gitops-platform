@@ -13,6 +13,9 @@ spec:
     path: argocd/platform/namespaces
   destination:
     server: https://kubernetes.default.svc
+    # Required by the AppProject check. Unused: Namespaces are cluster-scoped and each
+    # NetworkPolicy sets its own namespace.
+    namespace: kube-system
   syncPolicy:
     automated:
       prune: true
