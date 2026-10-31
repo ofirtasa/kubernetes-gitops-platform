@@ -196,8 +196,9 @@ Each significant decision is recorded as an ADR in [docs/decisions](docs/decisio
 
 - **HTTP only:** no domain, no TLS certificate.
 - **Single NAT gateway:** losing its AZ stops outbound traffic (image pulls, AWS APIs).
-- **Public API endpoint**, limited to an allow-listed IP; the list must be updated when the
-  operator's IP changes.
+- **Public API endpoint open to any address.** Access still needs IAM authentication and an
+  EKS access entry, but the API server is exposed to the internet. Production: private
+  endpoint through a VPN (ADR 0003).
 - **Capacity:** the 8 vCPU quota caps the cluster at four nodes. Node updates use the
   `MINIMAL` strategy, which removes a node before adding its replacement.
 - **Cluster Autoscaler v1.36.1** runs one minor version behind the cluster (1.37), because no

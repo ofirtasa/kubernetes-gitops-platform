@@ -4,8 +4,8 @@
 # changing who can read the bucket (that is governed by IAM and the bucket policy).
 AWS-0132
 
-# Public API endpoint, restricted to the admin's /32 (endpoint_public_access_cidrs); private
-# access is enabled for nodes. Production: private-only endpoint reached through VPN/bastion.
+# Public API endpoint open to any address (authentication still required: IAM + access entry);
+# private access is enabled for nodes. Production: private-only endpoint through VPN/bastion.
 AWS-0040
 AWS-0041
 

@@ -21,7 +21,8 @@ the ADRs.
 - VPC per environment, three AZs, private subnets for nodes and pods, public subnets only for
   load balancers. **One NAT gateway per AZ** (here: one).
 - **Private API endpoint only**, reached over VPN or AWS Client VPN. Here: public endpoint
-  limited to allow-listed IPs.
+  open to any address, protected by IAM authentication only, because the demo network is
+  not known in advance.
 - VPC interface endpoints (ECR, STS, Secrets Manager, CloudWatch) and ECR pull-through cache,
   so most AWS traffic never reaches the NAT.
 - Egress filtering by domain with AWS Network Firewall.

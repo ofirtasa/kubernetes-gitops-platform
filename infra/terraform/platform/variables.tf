@@ -48,7 +48,7 @@ variable "admin_principal_arn" {
 }
 
 variable "endpoint_public_access_cidrs" {
-  description = "CIDRs allowed to reach the public EKS API endpoint. Set in local.auto.tfvars, which is not committed."
+  description = "CIDRs allowed to reach the public EKS API endpoint."
   type        = list(string)
 }
 
