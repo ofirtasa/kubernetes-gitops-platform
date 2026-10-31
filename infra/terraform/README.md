@@ -46,6 +46,48 @@ A separate kubeconfig file keeps this cluster apart from any other clusters in
 
 Afterwards, both stacks only need `terraform init -backend-config=backend.hcl`.
 
+## Making changes
+
+CI checks Terraform but never applies it (no AWS write access in CI). A change is applied
+from `main`, after review:
+
+1. Change the code or `terraform.tfvars` on a branch and open a PR.
+2. Run a plan locally and put its summary in the PR, so the reviewer sees what will change:
+
+   ```bash
+   cd platform
+   terraform plan
+   ```
+
+3. CI runs `fmt`, `validate` and the Trivy IaC scan. Merge after approval.
+4. Plan again from `main` and check that it matches the plan in the PR, then apply that plan:
+
+   ```bash
+   git checkout main && git pull
+   terraform plan -out=platform.tfplan
+   terraform apply platform.tfplan
+   ```
+
+Saved plans (`*.tfplan`) are git-ignored; delete them after the apply.
+
+## Another AWS account or repository
+
+These values name this AWS account (`404386756450`) or this GitHub repository. Replace them
+before the first apply:
+
+| Value | Files |
+|---|---|
+| State bucket name | `bootstrap/terraform.tfvars`, `bootstrap/backend.hcl`, `platform/backend.hcl` |
+| Admin user, GitHub repository and its OIDC subject prefix | `platform/terraform.tfvars` |
+| ECR registry | `charts/nodes-api/values.yaml`, `policies/restrict-image-registries.yaml`, `policies/tests/resources.yaml` |
+| CI role ARN | `.github/workflows/app.yml` |
+| Secrets role ARNs | `argocd/platform/secret-stores/*.yaml` |
+| Repository URL | `argocd/bootstrap/*.yaml`, `argocd/platform/*.yaml`, `argocd/apps/nodes-api.yaml` |
+
+The OIDC subject prefix of this repository includes the owner and repository IDs
+(`owner@id/repo@id`). Check the new repository's subject format with
+`gh api repos/<owner>/<repo>/actions/oidc/customization/sub` before writing the prefix.
+
 ## Argo CD
 
 The platform stack installs Argo CD and the root Application. From then on, Argo CD deploys
