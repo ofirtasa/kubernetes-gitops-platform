@@ -7,6 +7,9 @@ metadata:
     # Pod Security Admission: reject pods that do not meet the "restricted" profile.
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/enforce-version: latest
+    # New pods count as ready only after the ALB target group reports them healthy, so a
+    # rollout never removes the last healthy target.
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
   annotations:
     # Removing the file must not delete the namespace and everything in it.
     argocd.argoproj.io/sync-options: Prune=false
