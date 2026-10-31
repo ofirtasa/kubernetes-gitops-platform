@@ -1,0 +1,41 @@
+# Policy engine: rejects workloads in the environment namespaces that break the policies in
+# policies/. Pod Security Admission already enforces the security context; Kyverno adds
+# rules PSA does not cover (registry, tags, resources, probes).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno
+  namespace: argocd
+spec:
+  project: platform
+  source:
+    repoURL: https://kyverno.github.io/kyverno
+    chart: kyverno
+    targetRevision: 3.9.2
+    helm:
+      releaseName: kyverno
+      valuesObject:
+        admissionController:
+          # The webhook fails closed: without a running replica no pod in dev, staging or
+          # prod can be created. Two replicas and a PDB keep it available during node changes.
+          replicas: 2
+          podDisruptionBudget:
+            enabled: true
+            maxUnavailable: 1
+        backgroundController:
+          replicas: 1
+        cleanupController:
+          replicas: 1
+        reportsController:
+          replicas: 1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kyverno
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # The CRDs are too large for the last-applied annotation of client-side apply.
+      - ServerSideApply=true

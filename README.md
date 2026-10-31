@@ -47,3 +47,4 @@ Each significant decision is recorded as an ADR in [docs/decisions](docs/decisio
 | [0005](docs/decisions/0005-promotion-and-ci-write-back.md) | Promotion between environments and CI write-back to Git |
 | [0006](docs/decisions/0006-ingress-shared-alb.md) | Ingress through one shared ALB |
 | [0007](docs/decisions/0007-secrets-with-external-secrets.md) | Secrets from AWS Secrets Manager through External Secrets Operator |
+| [0008](docs/decisions/0008-policy-as-code-with-kyverno.md) | Policy-as-code with Kyverno |

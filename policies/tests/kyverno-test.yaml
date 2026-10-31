@@ -1,0 +1,46 @@
+# Run with: kyverno test policies/tests
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: environment-policies
+policies:
+  - ../restrict-image-registries.yaml
+  - ../disallow-latest-tag.yaml
+  - ../require-requests-limits.yaml
+  - ../require-probes.yaml
+resources:
+  - resources.yaml
+variables: values.yaml
+results:
+  - policy: restrict-image-registries
+    kind: Deployment
+    resources: [compliant, latest-tag, no-tag, no-resources, no-probes]
+    result: pass
+  - policy: restrict-image-registries
+    kind: Deployment
+    resources: [public-registry]
+    result: fail
+  - policy: disallow-latest-tag
+    kind: Deployment
+    resources: [compliant, public-registry, no-resources, no-probes]
+    result: pass
+  - policy: disallow-latest-tag
+    kind: Deployment
+    resources: [latest-tag, no-tag]
+    result: fail
+  - policy: require-requests-limits
+    kind: Deployment
+    resources: [compliant, public-registry, latest-tag, no-tag, no-probes]
+    result: pass
+  - policy: require-requests-limits
+    kind: Deployment
+    resources: [no-resources]
+    result: fail
+  - policy: require-probes
+    kind: Deployment
+    resources: [compliant, public-registry, latest-tag, no-tag, no-resources]
+    result: pass
+  - policy: require-probes
+    kind: Deployment
+    resources: [no-probes]
+    result: fail

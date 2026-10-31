@@ -1,0 +1,13 @@
+# Labels of the environment namespaces, which the policies select on.
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Values
+namespaceSelector:
+  - name: dev
+    labels:
+      environment: dev
+  - name: staging
+    labels:
+      environment: staging
+  - name: prod
+    labels:
+      environment: prod
