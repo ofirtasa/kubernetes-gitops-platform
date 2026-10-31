@@ -18,7 +18,7 @@ a small budget, while following production practices wherever cost allows.
 | Private AWS access | S3 gateway endpoint | Free; image layers from ECR (stored in S3) bypass the NAT gateway |
 | Pod-level segmentation | NetworkPolicy enforced natively by the VPC CNI | No extra CNI; default-deny per namespace with explicit allows |
 | Egress | One NAT gateway | Cost |
-| API endpoint | Private for nodes; public only for allow-listed CIDRs | Operators can reach the API without a VPN; nobody else can |
+| API endpoint | Private for nodes; public endpoint open to any address | Operators and the review demo reach the API without a VPN, from networks not known in advance. An IP allow-list broke whenever the operator's address changed. Every request beyond health and version endpoints still needs IAM authentication and an EKS access entry |
 | Cluster access | EKS access entries (`authentication_mode = API`); no implicit admin for the Terraform caller | Access is explicit, in code and auditable; no `aws-auth` ConfigMap |
 | Workload AWS access | EKS Pod Identity | Simpler than IRSA: no OIDC provider per cluster, no role-trust edits per service account |
 | Pod networking | VPC CNI with prefix delegation | Raises the pods-per-node limit to 110 instead of the ENI-based limit |
@@ -62,7 +62,9 @@ variable change.
   would filter egress by domain (AWS Network Firewall or an egress proxy) and use VPC
   interface endpoints plus ECR pull-through cache so most traffic never leaves AWS.
 - **Private-only API endpoint.** Production would disable the public endpoint and reach the
-  API over VPN or a bastion.
+  API over VPN or a bastion. A public endpoint relies on authentication alone, and exposes the
+  API server to scanning and to any future vulnerability before authentication. If a public
+  endpoint is required, it is limited to the fixed egress IPs of the office VPN and CI.
 - **Instance types.** Production would use current general-purpose instances, preferably
   Graviton (`m7g`/`m8g`, about 20% cheaper for the same performance, with multi-arch images),
   chosen by Karpenter per workload, and Spot for non-production environments.

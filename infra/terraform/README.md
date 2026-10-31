@@ -32,7 +32,6 @@ terraform apply
 terraform init -migrate-state -backend-config=backend.hcl
 
 cd ../platform
-cp local.auto.tfvars.example local.auto.tfvars   # set your public IP
 terraform init -backend-config=backend.hcl
 terraform plan -out=platform.tfplan
 terraform apply platform.tfplan

@@ -28,7 +28,7 @@ flowchart LR
         end
     end
 
-    cp[EKS control plane<br/>private + allow-listed public endpoint]
+    cp[EKS control plane<br/>private + public endpoint, IAM auth]
     sm[(Secrets Manager<br/>k8s-gitops/env/nodes-api)]
     ecr[(ECR nodes-api<br/>immutable tags)]
     cw[(CloudWatch<br/>audit logs)]

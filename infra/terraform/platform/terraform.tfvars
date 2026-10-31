@@ -11,7 +11,6 @@ single_nat_gateway   = true
 # EKS
 kubernetes_version         = "1.37"
 admin_principal_arn        = "arn:aws:iam::404386756450:user/ofir-admin"
-endpoint_public_access     = true
 cluster_log_types          = ["audit", "authenticator"]
 cluster_log_retention_days = 7
 node_ami_type              = "AL2023_x86_64_STANDARD"
@@ -19,6 +18,11 @@ node_instance_types        = ["c7i-flex.large"] # Free plan allows only Free Tie
 node_min_size              = 2                  # Cluster Autoscaler adds the third node when pods need it
 node_max_size              = 4
 node_desired_size          = 3
+
+# EKS API endpoint: open to any address, because the demo network is not known in advance.
+# Every request still needs IAM authentication and an EKS access entry (ADR 0003).
+endpoint_public_access       = true
+endpoint_public_access_cidrs = ["0.0.0.0/0"]
 
 # Webhooks the control plane calls on nodes (security group ingress)
 node_webhook_ports = {
