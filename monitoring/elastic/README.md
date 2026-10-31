@@ -56,6 +56,19 @@ The four golden signals for the service, plus the platform that runs it:
 | Availability | Available vs desired replicas; container restarts and CrashLoopBackOff |
 | Delivery | Argo CD sync and health status of each Application |
 
+### Cluster level
+
+- **Nodes:** CPU, memory, disk and the `MemoryPressure`, `DiskPressure` and `Ready` conditions
+  from the Kubernetes integration.
+- **Control plane:** EKS sends the `audit` and `authenticator` logs to CloudWatch (ADR 0003).
+  The agent's AWS CloudWatch integration copies them to Elasticsearch, so "who changed this
+  object" is searched next to the application logs.
+- **Kubernetes events:** scheduling failures, image pull errors, OOM kills and evictions, kept
+  after the events expire from the API server (one hour).
+- **Platform add-ons:** the same Deployment and CrashLoopBackOff rules cover Argo CD, Kyverno,
+  External Secrets and the AWS Load Balancer Controller, because their namespaces are not
+  filtered out of the platform dashboards.
+
 ## Alerts
 
 Five Kibana custom threshold rules in [main.tf](main.tf). Each rule checks every minute,
@@ -72,6 +85,24 @@ alert starts and one when it recovers.
 
 Rules that would be added next: HPA at its maximum replicas for 15 minutes (saturation before
 errors), node NotReady, and nodes at the Cluster Autoscaler maximum with pods Pending.
+
+## Incident investigation
+
+Each alert message links to Kibana with the alert's group (environment, pod or Application)
+already selected. From there:
+
+1. **What changed?** Argo CD history of the Application: the last sync, the commit and the
+   image tag. Most incidents follow a deployment, and `git revert` of the promotion commit is
+   the fastest mitigation.
+2. **Which pods and nodes?** Kibana's Kubernetes dashboards, filtered by namespace: restarts,
+   OOM kills, CPU throttling, and whether the failing pods share a node or an AZ.
+3. **What do the logs say?** Discover on `logs-*`, filtered by `kubernetes.pod.name` and
+   `nodes_api.status >= 500`. The JSON fields allow queries such as the slowest requests
+   over the last hour.
+4. **Did the platform reject or change something?** Kubernetes events, Kyverno policy
+   violations in the Argo CD sync result, and the EKS audit log for manual changes.
+5. **Afterwards:** a short post-incident note, and a new rule or test when the alert came
+   late or not at all.
 
 ## Applying the rules
 
