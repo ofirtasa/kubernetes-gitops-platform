@@ -72,6 +72,10 @@ variable change.
   - It runs v1.36.1, one minor version behind the cluster, because 1.37 is not released yet.
     It should be upgraded when that release comes out.
   - The account's 8 vCPU On-Demand quota caps the cluster at 4 nodes anyway.
+  - Node updates use the `MINIMAL` strategy, one node at a time: an old node is terminated
+    before its replacement launches. The default strategy launches up to twice as many new
+    nodes as there are AZs before it removes old ones, and the quota rejects that. Production
+    would keep the default, which never reduces capacity during an update.
   - Production would use Karpenter instead: it picks the instance type per workload, without
     node groups, and adds Spot capacity for non-production environments.
 - **Destroyable resources.** The state bucket and ECR repository allow `terraform destroy`
