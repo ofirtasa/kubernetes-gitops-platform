@@ -6,6 +6,10 @@ kind: Application
 metadata:
   name: kyverno
   namespace: argocd
+  annotations:
+    # Compare through the API server, which applies CRD defaults. The client-side diff
+    # reports the large Kyverno CRDs as OutOfSync although they match Git.
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
 spec:
   project: platform
   source:
