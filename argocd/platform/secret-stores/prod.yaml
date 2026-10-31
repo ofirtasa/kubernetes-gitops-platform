@@ -1,0 +1,13 @@
+# Platform-owned, so an application cannot point its store at another environment's role.
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: aws-secrets-manager
+  namespace: prod
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: eu-north-1
+      # Assumed from the ESO Pod Identity role; may read only the prod secrets.
+      role: arn:aws:iam::404386756450:role/k8s-gitops-secrets-prod

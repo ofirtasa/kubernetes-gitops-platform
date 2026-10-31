@@ -4,6 +4,8 @@ image:
 config:
   appEnv: dev
   logLevel: DEBUG
+apiKey:
+  remoteKey: k8s-gitops/dev/nodes-api
 autoscaling:
   minReplicas: 1
   maxReplicas: 2

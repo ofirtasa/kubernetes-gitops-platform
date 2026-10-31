@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 3.3"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.8"
+    }
   }
 
   # Values in backend.hcl; credentials come from AWS_PROFILE.

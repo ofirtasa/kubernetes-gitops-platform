@@ -12,9 +12,12 @@ spec:
     - https://github.com/ofirtasa/kubernetes-gitops-platform.git
     - https://kubernetes.github.io/autoscaler
     - https://aws.github.io/eks-charts
+    - https://charts.external-secrets.io
   destinations:
     - server: https://kubernetes.default.svc
       namespace: kube-system
+    - server: https://kubernetes.default.svc
+      namespace: external-secrets
     - server: https://kubernetes.default.svc
       namespace: dev
     - server: https://kubernetes.default.svc
@@ -50,9 +53,12 @@ spec:
       kind: ClusterRole
     - group: rbac.authorization.k8s.io
       kind: ClusterRoleBinding
-  # Quotas and limits belong to the platform, not to the workload.
+  # Quotas, limits and secret stores belong to the platform, not to the workload. A workload
+  # with its own SecretStore could name another environment's AWS role.
   namespaceResourceBlacklist:
     - group: ""
       kind: ResourceQuota
     - group: ""
       kind: LimitRange
+    - group: external-secrets.io
+      kind: SecretStore

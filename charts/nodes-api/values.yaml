@@ -20,6 +20,10 @@ config:
 apiKey:
   secretName: nodes-api
   secretKey: api-key
+  # Secrets Manager secret name. When empty no ExternalSecret is created.
+  remoteKey: ""
+  # How often ESO re-reads the secret; a rotated key reaches the pods within this time.
+  refreshInterval: 1h
 
 service:
   port: 80

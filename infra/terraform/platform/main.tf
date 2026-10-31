@@ -345,6 +345,102 @@ module "aws_lb_controller_pod_identity" {
 }
 
 ################################################################################
+# Application secrets: Secrets Manager, read by External Secrets Operator (ESO)
+################################################################################
+
+locals {
+  environments = toset(["dev", "staging", "prod"])
+}
+
+resource "aws_secretsmanager_secret" "nodes_api" {
+  for_each = local.environments
+
+  name        = "${var.name}/${each.key}/nodes-api"
+  description = "nodes-api API key for ${each.key}"
+
+  # Deleted immediately on destroy, so the name can be reused when the environment is rebuilt.
+  recovery_window_in_days = 0
+}
+
+# Generated during apply and sent write-only: the key is never stored in Terraform state.
+ephemeral "random_password" "nodes_api_key" {
+  for_each = local.environments
+
+  length  = 40
+  special = false
+}
+
+resource "aws_secretsmanager_secret_version" "nodes_api" {
+  for_each = local.environments
+
+  secret_id        = aws_secretsmanager_secret.nodes_api[each.key].id
+  secret_string_wo = jsonencode({ api_key = ephemeral.random_password.nodes_api_key[each.key].result })
+  # Increase to rotate the key.
+  secret_string_wo_version = 1
+}
+
+# ESO itself may only assume the per-environment roles below. Each SecretStore names its
+# environment's role, so dev can never read the prod secret.
+module "external_secrets_pod_identity" {
+  source  = "terraform-aws-modules/eks-pod-identity/aws"
+  version = "~> 2.10"
+
+  name = "${var.name}-external-secrets"
+
+  attach_custom_policy = true
+  policy_statements = [{
+    sid       = "AssumeEnvironmentRoles"
+    actions   = ["sts:AssumeRole", "sts:TagSession"]
+    resources = [for env in local.environments : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.name}-secrets-${env}"]
+  }]
+
+  associations = {
+    this = {
+      cluster_name    = module.eks.cluster_name
+      namespace       = "external-secrets"
+      service_account = "external-secrets"
+    }
+  }
+}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_policy_document" "secrets_env_trust" {
+  statement {
+    actions = ["sts:AssumeRole", "sts:TagSession"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [module.external_secrets_pod_identity.iam_role_arn]
+    }
+  }
+}
+
+resource "aws_iam_role" "secrets_env" {
+  for_each = local.environments
+
+  name               = "${var.name}-secrets-${each.key}"
+  assume_role_policy = data.aws_iam_policy_document.secrets_env_trust.json
+}
+
+data "aws_iam_policy_document" "secrets_env" {
+  for_each = local.environments
+
+  statement {
+    actions   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+    resources = [aws_secretsmanager_secret.nodes_api[each.key].arn]
+  }
+}
+
+resource "aws_iam_role_policy" "secrets_env" {
+  for_each = local.environments
+
+  name   = "read-nodes-api-secret"
+  role   = aws_iam_role.secrets_env[each.key].id
+  policy = data.aws_iam_policy_document.secrets_env[each.key].json
+}
+
+################################################################################
 # GitOps bootstrap: Argo CD and the root Application (the only in-cluster resources
 # Terraform installs; Argo CD deploys everything else from Git)
 ################################################################################
