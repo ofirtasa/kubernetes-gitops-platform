@@ -32,6 +32,8 @@ spec:
           expander: least-waste
           scale-down-unneeded-time: 10m
           skip-nodes-with-local-storage: false
+          # Otherwise a node running any kube-system pod (CoreDNS, metrics-server) is never removed.
+          skip-nodes-with-system-pods: false
         resources:
           requests:
             cpu: 50m
