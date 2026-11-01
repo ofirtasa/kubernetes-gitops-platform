@@ -41,11 +41,15 @@ Workflows in `.github/workflows/`. Every PR runs all of them; `main` requires th
 
 | Environment | Trigger | Approval |
 |---|---|---|
-| dev | Merge to `main` → CI commits the new SHA to `values-dev.yaml` | The code PR review |
-| staging | PR copying the dev tag to `values-staging.yaml` | PR approval |
-| prod | PR copying the staging tag to `values-prod.yaml` | PR approval |
+| dev | Merge to `main` → CI commits the new SHA to `values-dev.yaml` | The code PR: checks + merge |
+| staging | PR copying the dev tag to `values-staging.yaml` | Promotion PR: checks + merge |
+| prod | PR copying the staging tag to `values-prod.yaml` | Promotion PR: checks + merge |
 
 The same image moves through all three environments; nothing is rebuilt.
+
+The `main` ruleset requires a PR and all status checks, with no required reviewers: the
+repository has a single maintainer, so the merge is the approval. A team would require at
+least one review and a CODEOWNERS entry for `values-prod.yaml`.
 
 ## Deployment update strategy
 

@@ -27,9 +27,9 @@ every merge.
 
 | Environment | How a version gets there | Approval |
 |---|---|---|
-| dev | CI commits the new tag to `environments/values-dev.yaml` after every merge to `main` | The merge of the code PR |
-| staging | PR that copies the dev tag into `values-staging.yaml` | PR approval |
-| prod | PR that copies the staging tag into `values-prod.yaml` | PR approval |
+| dev | CI commits the new tag to `environments/values-dev.yaml` after every merge to `main` | The code PR: checks + merge |
+| staging | PR that copies the dev tag into `values-staging.yaml` | Promotion PR: checks + merge |
+| prod | PR that copies the staging tag into `values-prod.yaml` | Promotion PR: checks + merge |
 
 - The image is built once, tagged with the commit SHA and never rebuilt for another
   environment. What reaches prod is byte-for-byte what was tested in staging.
