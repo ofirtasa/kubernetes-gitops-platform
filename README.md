@@ -42,7 +42,7 @@ Detailed diagrams (runtime and network, delivery, GitOps structure):
 | `GET /health` | Liveness: the process is up |
 | `GET /ready` | Readiness: the Kubernetes client is configured |
 | `GET /nodes` | The cluster's nodes; `current: true` marks the node this pod runs on. Requires the `X-API-Key` header |
-| `GET /metrics` | Prometheus metrics: requests by route and status, latency, Kubernetes API errors |
+| `GET /metrics` | Prometheus metrics: requests by route and status, latency, Kubernetes API errors. Served on port 9090, which the Ingress does not expose |
 
 The pod's ServiceAccount may only `list` nodes (ClusterRole + ClusterRoleBinding), because
 nodes are cluster-scoped.

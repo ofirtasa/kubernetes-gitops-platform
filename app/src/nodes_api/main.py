@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from kubernetes import client
 from kubernetes.client.exceptions import ApiException
-from prometheus_client import make_asgi_app
+from prometheus_client import start_http_server
 from urllib3.exceptions import HTTPError
 
 from nodes_api import k8s
@@ -28,12 +28,13 @@ def create_app(settings: Settings | None = None, core_api: client.CoreV1Api | No
             app.state.core_api = client.CoreV1Api()
         else:
             app.state.core_api = core_api
+        if settings.metrics_port:
+            start_http_server(settings.metrics_port)
         fields = {"env": settings.app_env, "node": settings.node_name}
         logger.info("started", extra={"fields": fields})
         yield
 
     app = FastAPI(title="nodes-api", lifespan=lifespan, docs_url=None, redoc_url=None)
-    app.mount("/metrics", make_asgi_app())
 
     @app.middleware("http")
     async def observe(request: Request, call_next):
@@ -42,20 +43,19 @@ def create_app(settings: Settings | None = None, core_api: client.CoreV1Api | No
         elapsed = time.perf_counter() - start
         # Route template, not the raw path, keeps metric cardinality bounded.
         route = getattr(request.scope.get("route"), "path", "unmatched")
-        if route != "/metrics":
-            HTTP_REQUESTS.labels(request.method, route, response.status_code).inc()
-            HTTP_REQUEST_DURATION.labels(request.method, route).observe(elapsed)
-            logger.info(
-                "request",
-                extra={
-                    "fields": {
-                        "method": request.method,
-                        "path": request.url.path,
-                        "status": response.status_code,
-                        "duration_ms": round(elapsed * 1000, 1),
-                    }
-                },
-            )
+        HTTP_REQUESTS.labels(request.method, route, response.status_code).inc()
+        HTTP_REQUEST_DURATION.labels(request.method, route).observe(elapsed)
+        logger.info(
+            "request",
+            extra={
+                "fields": {
+                    "method": request.method,
+                    "path": request.url.path,
+                    "status": response.status_code,
+                    "duration_ms": round(elapsed * 1000, 1),
+                }
+            },
+        )
         return response
 
     def require_api_key(x_api_key: str | None = Header(default=None)) -> None:

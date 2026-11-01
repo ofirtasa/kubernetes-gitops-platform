@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 from kubernetes.client.exceptions import ApiException
+from prometheus_client import generate_latest
 
 from nodes_api.config import Settings
 from nodes_api.main import create_app
@@ -35,6 +36,7 @@ def make_settings(**overrides):
         "pod_namespace": "dev",
         "api_key_file": None,
         "k8s_timeout_seconds": 5,
+        "metrics_port": 0,
     }
     return Settings(**(values | overrides))
 
@@ -107,5 +109,10 @@ def test_missing_api_key_file_leaves_nodes_open(core_api, tmp_path):
 def test_metrics_use_route_template(core_api):
     with client_for(core_api) as client:
         client.get("/health")
-        metrics = client.get("/metrics").text
+    metrics = generate_latest().decode()
     assert 'http_requests_total{method="GET",route="/health",status="200"}' in metrics
+
+
+def test_metrics_not_served_on_the_api_port(core_api):
+    with client_for(core_api) as client:
+        assert client.get("/metrics").status_code == 404

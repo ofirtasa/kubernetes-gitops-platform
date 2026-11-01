@@ -29,6 +29,8 @@ service:
   port: 80
 
 containerPort: 8000
+# Prometheus metrics. Not in the Service or the Ingress: only the monitoring namespace reaches it.
+metricsPort: 9090
 
 resources:
   requests:
@@ -69,7 +71,7 @@ networkPolicy:
   albCidrs: []
   # Kubernetes API (EKS control plane ENIs in the VPC).
   apiServerCidrs: []
-  # Namespace allowed to scrape /metrics.
+  # Namespace allowed to scrape the metrics port.
   monitoringNamespace: monitoring
 
 nodeSelector: {}
