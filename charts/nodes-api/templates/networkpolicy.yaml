@@ -18,11 +18,15 @@ spec:
         - ipBlock:
             cidr: {{ . }}
         {{- end }}
+      ports:
+        - port: http
+          protocol: TCP
+    - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: {{ .Values.networkPolicy.monitoringNamespace }}
       ports:
-        - port: http
+        - port: metrics
           protocol: TCP
   egress:
     - to:

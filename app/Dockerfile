@@ -20,7 +20,7 @@ ENV PYTHONPATH=/app \
     PYTHONUNBUFFERED=1
 
 USER 65532:65532
-EXPOSE 8000
+EXPOSE 8000 9090
 
 ENTRYPOINT ["python3", "-m", "uvicorn", "--factory", "nodes_api.main:create_app", \
             "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

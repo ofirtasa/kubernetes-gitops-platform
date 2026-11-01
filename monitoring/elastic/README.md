@@ -24,7 +24,7 @@ EKS cluster                                                Elastic Cloud
 |---|---|---|
 | Node and pod CPU, memory, network | Kubernetes integration, kubelet | `metrics-kubernetes.*` |
 | Desired vs available replicas, container states, restarts | Kubernetes integration, kube-state-metrics | `metrics-kubernetes.state_*` |
-| Request count, status and latency of nodes-api | Prometheus integration, `/metrics` on port `http` | `metrics-prometheus.*` |
+| Request count, status and latency of nodes-api | Prometheus integration, `/metrics` on port `metrics` (9090) | `metrics-prometheus.*` |
 | Argo CD sync and health of every Application | Prometheus integration, `argocd-application-controller-metrics` | `metrics-prometheus.*` |
 | Application logs (one JSON object per line) | Kubernetes integration, container logs | `logs-kubernetes.container_logs-*` |
 

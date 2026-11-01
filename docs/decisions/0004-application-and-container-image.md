@@ -19,6 +19,8 @@ be small, observable and safe to run under a restricted securityContext.
   - `/nodes` returns `current: true` for the pod's own node, identified by `NODE_NAME` from the
     Downward API (`spec.nodeName`).
   - `/metrics` serves Prometheus metrics, labelled by route template to keep cardinality low.
+    It listens on a separate port (9090) that is not in the Service or the Ingress, so it is
+    never reachable through the ALB; the NetworkPolicy opens it to the monitoring namespace only.
 - **Least privilege:** the only Kubernetes call is `list` on `nodes`, with a 5 s timeout.
   API errors return `502` and increment `k8s_api_errors_total`.
 - **Optional API key:** when the Secret file at `API_KEY_FILE` exists, `/nodes` requires the

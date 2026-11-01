@@ -18,6 +18,8 @@ class Settings:
     pod_namespace: str | None
     api_key_file: str | None
     k8s_timeout_seconds: float
+    # Separate port, so the Ingress never exposes metrics. 0 turns the server off.
+    metrics_port: int = 9090
 
     def read_api_key(self) -> str | None:
         """Read on every call, so a rotated Secret applies without a restart."""
@@ -38,4 +40,5 @@ class Settings:
             pod_namespace=os.getenv("POD_NAMESPACE") or None,
             api_key_file=os.getenv("API_KEY_FILE") or None,
             k8s_timeout_seconds=float(os.getenv("K8S_TIMEOUT_SECONDS", "5")),
+            metrics_port=int(os.getenv("METRICS_PORT", "9090")),
         )
