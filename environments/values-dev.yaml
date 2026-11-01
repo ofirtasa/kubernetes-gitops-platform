@@ -1,6 +1,6 @@
 # dev: CI updates image.tag on every merge to main.
 image:
-  tag: c4b24e5a4a923a7b8d31bc905a04d8647039e843
+  tag: f634521ae8776c31c4c8e3e7e52a59104666c464
 config:
   appEnv: dev
   logLevel: DEBUG
