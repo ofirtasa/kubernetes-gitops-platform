@@ -60,7 +60,7 @@ CI builds and pushes images; it never talks to the cluster. Argo CD pulls every 
 
 ```mermaid
 flowchart LR
-    dev([Developer]) -->|PR| gh[GitHub main<br/>ruleset: PR + 7 checks]
+    dev([Developer]) -->|PR| gh[GitHub main<br/>ruleset: PR + 8 checks]
     gh --> ci[GitHub Actions<br/>test, lint, build, Trivy]
     ci -->|OIDC role, push| ecr[(ECR<br/>tag = commit SHA)]
     ci -->|GitHub App commits tag| devvals[environments/values-dev.yaml]
