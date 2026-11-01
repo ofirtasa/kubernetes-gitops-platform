@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   validate:
-    # Explicit name keeps the required check names (validate (bootstrap), validate (platform)).
+    # Explicit name keeps the required check names: validate (bootstrap), (platform), (monitoring).
     name: validate (${{ matrix.stack }})
     runs-on: ubuntu-24.04
     strategy:
