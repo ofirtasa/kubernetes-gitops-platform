@@ -17,15 +17,18 @@ flowchart LR
     subgraph aws["AWS eu-north-1"]
         subgraph eks["EKS cluster, 3 AZs"]
             argo[Argo CD] -->|sync| envs[nodes-api<br/>dev / staging / prod]
-            argo -->|sync| addons[Load Balancer Controller,<br/>External Secrets, Kyverno,<br/>Cluster Autoscaler]
+            argo -->|sync| addons[Kyverno,<br/>Cluster Autoscaler]
+            argo -->|sync| lbc[Load Balancer<br/>Controller]
+            argo -->|sync| eso[External Secrets<br/>Operator]
         end
         alb[ALB] --> envs
-        addons -.-> sm[(Secrets Manager)]
+        lbc -.->|creates| alb
+        eso -.->|reads API key| sm[(Secrets Manager)]
         envs -.->|pull| ecr
     end
 
     user([Client]) --> alb
-    tf[Terraform] -.->|VPC, EKS, IAM,<br/>installs Argo CD| aws
+    tf[Terraform] -.->|VPC, EKS, IAM, ECR,<br/>Secrets Manager,<br/>installs Argo CD| aws
 ```
 
 One EKS cluster in `eu-north-1` across three AZs, one namespace per environment. Terraform
