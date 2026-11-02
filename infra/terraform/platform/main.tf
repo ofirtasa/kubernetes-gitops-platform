@@ -475,7 +475,11 @@ resource "helm_release" "argocd" {
         LUA
       }
     }
-    controller     = { resources = { requests = { cpu = "100m", memory = "384Mi" } } }
+    controller = {
+      resources = { requests = { cpu = "100m", memory = "384Mi" } }
+      # Service for the Prometheus metrics (Application sync and health) that monitoring scrapes.
+      metrics = { enabled = true }
+    }
     repoServer     = { resources = { requests = { cpu = "50m", memory = "128Mi" } } }
     server         = { resources = { requests = { cpu = "50m", memory = "128Mi" } } }
     applicationSet = { resources = { requests = { cpu = "25m", memory = "64Mi" } } }
